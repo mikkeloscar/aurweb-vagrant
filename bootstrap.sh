@@ -73,12 +73,12 @@ http {
             root   /usr/share/nginx/html;
         }
     }
-}" | sudo tee /etc/nginx/nginx.conf
+}" > /etc/nginx/nginx.conf
 
 # php-fpm
-echo "php_admin_value[open_basedir] = /vagrant" | sudo tee -a /etc/php/php-fpm.conf
-echo "php_admin_value[extension] = pdo_mysql.so" | sudo tee -a /etc/php/php-fpm.conf
-echo "php_admin_value[extension] = mysqli.so" | sudo tee -a /etc/php/php-fpm.conf
+echo "php_admin_value[open_basedir] = /vagrant" >> /etc/php/php-fpm.conf
+echo "php_admin_value[extension] = pdo_mysql.so" >> /etc/php/php-fpm.conf
+echo "php_admin_value[extension] = mysqli.so" >> /etc/php/php-fpm.conf
 
 # start nginx and php-fpm
 systemctl start nginx php-fpm
