@@ -6,11 +6,12 @@ tic -x termite.terminfo -o /usr/share/terminfo
 rm termite.terminfo
 
 # install aurweb deps
-pacman -Syu nginx php-fpm mariadb python2 git --noconfirm
+pacman -Syu nginx php-fpm phpmyadmin php-mcrypt mariadb python2 git --noconfirm
 
 # start db
 mysql_install_db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
-systemctl start mysqld.service
+systemctl start mysqld
+systemctl enable mysqld
 
 # instead of mysql_secure_installation
 
@@ -73,15 +74,36 @@ http {
             root   /usr/share/nginx/html;
         }
     }
+
+    server {
+        listen 81;
+        server_name     localhost;
+
+        root    /usr/share/webapps/phpMyAdmin;
+        index   index.php;
+
+        location ~ \.php$ {
+            try_files      \$uri =404;
+            fastcgi_pass   unix:/run/php-fpm/php-fpm.sock;
+            fastcgi_index  index.php;
+            fastcgi_param  SCRIPT_FILENAME  \$document_root\$fastcgi_script_name;
+            fastcgi_param  PATH_INFO        \$fastcgi_path_info;
+            include        fastcgi_params;
+        }
+    }
 }" > /etc/nginx/nginx.conf
 
+# enable extensions in php
+sed -i "s/;extension=mcrypt.so/extension=mcrypt.so/" /etc/php/php.ini
+sed -i "s/;extension=mysqli.so/extension=mysqli.so/" /etc/php/php.ini
+
 # php-fpm
-echo "php_admin_value[open_basedir] = /vagrant" >> /etc/php/php-fpm.conf
+echo "php_admin_value[open_basedir] = /tmp:/vagrant:/etc/webapps:/usr/share/webapps" >> /etc/php/php-fpm.conf
 echo "php_admin_value[extension] = pdo_mysql.so" >> /etc/php/php-fpm.conf
-echo "php_admin_value[extension] = mysqli.so" >> /etc/php/php-fpm.conf
 
 # start nginx and php-fpm
 systemctl start nginx php-fpm
+systemctl enable nginx php-fpm
 
 # aur setup
 # aur shcema
