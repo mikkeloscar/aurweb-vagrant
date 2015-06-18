@@ -1,12 +1,21 @@
 #!/bin/bash
 
+basedir=/vagrant
+
 # install terminfo for termite
 curl -O https://raw.githubusercontent.com/thestinger/termite/master/termite.terminfo
 tic -x termite.terminfo -o /usr/share/terminfo
 rm termite.terminfo
 
 # install aurweb deps
-pacman -Syu nginx php-fpm phpmyadmin php-mcrypt mariadb python-mysql-connector git --noconfirm
+pacman -Syu nginx \
+            php-fpm \
+            phpmyadmin \
+            php-mcrypt \
+            mariadb \
+            python-mysql-connector \
+            python-pygit2 \
+            git --noconfirm
 
 # start db
 mysql_install_db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
@@ -51,7 +60,7 @@ http {
     server {
         listen       80;
         server_name  localhost;
-        root   /vagrant/web/html;
+        root   $basedir/web/html;
         index  index.html index.htm index.php;
 
         location ~ ^/[^/]+\.php($|/) {
@@ -75,6 +84,7 @@ http {
         }
     }
 
+    # phpmyadmin
     server {
         listen 81;
         server_name     localhost;
@@ -98,7 +108,7 @@ sed -i "s/;extension=mcrypt.so/extension=mcrypt.so/" /etc/php/php.ini
 sed -i "s/;extension=mysqli.so/extension=mysqli.so/" /etc/php/php.ini
 
 # php-fpm
-echo "php_admin_value[open_basedir] = /tmp:/vagrant:/etc/webapps:/usr/share/webapps" >> /etc/php/php-fpm.conf
+echo "php_admin_value[open_basedir] = /tmp:$basedir:/etc/webapps:/usr/share/webapps" >> /etc/php/php-fpm.conf
 echo "php_admin_value[extension] = pdo_mysql.so" >> /etc/php/php-fpm.conf
 
 # start nginx and php-fpm
@@ -107,20 +117,20 @@ systemctl enable nginx php-fpm
 
 # aur setup
 # aur shcema
-mysql -uaur -p'aur' AUR < /vagrant/schema/aur-schema.sql
+mysql -uaur -p'aur' AUR < $basedir/schema/aur-schema.sql
 
 # create aur user
-useradd -U -d /vagrant -c 'AUR user' aur
+useradd -U -d $basedir -c 'AUR user' aur
 
 # git repo
-mkdir /vagrant/aur.git/
-cd /vagrant/aur.git/
+mkdir /srv/aur.git/
+cd /srv/aur.git/
 git init --bare
-ln -s ../../git-interface/git-update.py hooks/update
+ln -s $basedir/git-interface/git-update.py hooks/update
 chown -R aur .
 
 # git-auth wrapper
-cd /vagrant/git-interface/
+cd $basedir/git-interface/
 make
 make install
 
@@ -132,13 +142,13 @@ cd openssh-aur
 su vagrant -c 'makepkg -s --skippgpcheck'
 yes | pacman -U *.pkg.tar.xz
 cd ..
-rm -rf openssh-aur
+rm -rf openssh-aur openssh-aur.tar.gz
 
 # sshd
 echo "
 Match User aur
     PasswordAuthentication no
-    AuthorizedKeysCommand /vagrant/git-interface/aur-git-auth "%t" "%k"
+    AuthorizedKeysCommand /usr/local/bin/aur-git-auth "%t" "%k"
     AuthorizedKeysCommandUser aur" >> /etc/ssh/sshd_config
 
 systemctl daemon-reload
