@@ -6,7 +6,7 @@ tic -x termite.terminfo -o /usr/share/terminfo
 rm termite.terminfo
 
 # install aurweb deps
-pacman -Syu nginx php-fpm phpmyadmin php-mcrypt mariadb python2 git --noconfirm
+pacman -Syu nginx php-fpm phpmyadmin php-mcrypt mariadb python-mysql-connector git --noconfirm
 
 # start db
 mysql_install_db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
@@ -138,7 +138,7 @@ rm -rf openssh-aur
 echo "
 Match User aur
     PasswordAuthentication no
-    AuthorizedKeysCommand /usr/local/bin/aur-git-auth "%t" "%k"
+    AuthorizedKeysCommand /vagrant/git-interface/aur-git-auth "%t" "%k"
     AuthorizedKeysCommandUser aur" >> /etc/ssh/sshd_config
 
 systemctl daemon-reload
