@@ -134,16 +134,6 @@ cd $basedir/git-interface/
 make
 make install
 
-# install openssh-aur
-cd /home/vagrant
-su vagrant -c 'curl -O https://aur.archlinux.org/packages/op/openssh-aur/openssh-aur.tar.gz'
-su vagrant -c 'tar -xzf openssh-aur.tar.gz'
-cd openssh-aur
-su vagrant -c 'makepkg -s --skippgpcheck'
-yes | pacman -U *.pkg.tar.xz
-cd ..
-rm -rf openssh-aur openssh-aur.tar.gz
-
 # sshd
 echo "
 Match User aur
