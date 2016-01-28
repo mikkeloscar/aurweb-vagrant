@@ -27,8 +27,7 @@ expects in the next steps)
 
 Copy or symlink `Vagrantfile` and `bootstrap.sh` into the root of your `aurweb`
 repo. Change directory to `aurweb` and run `vagrant up`. This will boot a
-virtual machine + install and setup everything needed for running aurweb. It
-will also build `openssh-aur` which might take some time.
+virtual machine + install and setup everything needed for running aurweb.
 
 Copy `config` (from this repo) to `aurweb/conf/config` and modify to your needs.
 
